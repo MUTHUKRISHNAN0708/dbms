@@ -1,0 +1,52 @@
+CREATE TABLE salesmen (
+    id INT PRIMARY KEY,
+    name VARCHAR(100)
+);
+CREATE TABLE customers (
+    id INT PRIMARY KEY,
+    name VARCHAR(100),
+    salesman_id INT,
+    FOREIGN KEY (salesman_id) REFERENCES salesmen(id)
+);
+CREATE TABLE purchases (
+    id INT PRIMARY KEY,
+    customer_id INT,
+    amount DECIMAL(10,2),
+    purchase_date DATE,
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
+);
+INSERT INTO salesmen (id, name) VALUES
+(1000, 'Alice'),
+(1001, 'Bob');
+
+INSERT INTO customers (id, name, salesman_id) VALUES
+(1, 'John Doe', 1000),
+(2, 'Jane Smith', 1001);
+
+INSERT INTO purchases (id, customer_id, amount, purchase_date) VALUES
+(1, 1, 1000.00, '2025-05-01'),
+(2, 2, 1500.00, '2025-05-01'),
+(3, 1, 1200.00, '2025-05-02');
+CREATE VIEW TopSalesmanPerDay AS
+SELECT 
+    p.purchase_date,
+    s.id AS salesman_id,
+    s.name AS salesman_name,
+    c.id AS customer_id,
+    c.name AS customer_name,
+    p.amount AS highest_purchase_amount
+FROM 
+    purchases p
+JOIN 
+    customers c ON p.customer_id = c.id
+JOIN 
+    salesmen s ON c.salesman_id = s.id
+WHERE 
+    (p.purchase_date, p.amount) IN (
+        SELECT 
+            purchase_date, MAX(amount)
+        FROM 
+            purchases
+        GROUP BY 
+            purchase_date
+    );
